@@ -1,0 +1,101 @@
+import pygame
+import math
+
+
+class Star:
+    # Set up the astronomical constant as the main unit distance scale
+    AU = 149.6e6  # In Kilometer
+    AU = AU * 1000  # in meter
+    # Gravitational constant
+    G = 6.67428e-11
+    # Set up a distance scale for simulation purpose
+    SCALE = 250 / AU  # 1AU = 100 pixels
+    # Set up a time step scale for simulation purpose
+    TIMESTEP = 3600 * 24  # 1 Day
+
+    def __init__(self, x=0, y=0, radius=15, mass=1.98892 * 10**30, color=(255, 200, 0), name='sun'):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.mass = mass
+        self.color = color
+        self.name = name
+
+        # Initialize the velocity of the planet
+        self.x_velocity = 0
+        self.y_velocity = 0
+
+        # Initialize the distance from the sun
+        self.distance_to_sun = 0
+
+        # Initialize the orbit position of the planet
+        self.orbit = []
+
+
+    def draw(self, win):
+        x = self.x * self.SCALE + win.get_width() / 2
+        y = self.y * self.SCALE + win.get_height() * (2 / 3)
+
+        pygame.draw.circle(win,
+                           self.color,
+                           (x, y),
+                           self.radius)
+
+
+    def draw_orbit(self, win):
+        # Draw the orbit as a line made of all the points in the trajectory
+        if len(self.orbit) > 2 :
+            updated_points = []
+            for point in self.orbit:
+                x, y = point
+                x = x * self.SCALE + win.get_width() / 2
+                y = y * self.SCALE + win.get_height() / 2
+                updated_points.append((x, y))
+
+            pygame.draw.lines(win, self.color, False, updated_points, 1)
+    def attraction(self, other_body):
+        """
+        Calculates the gravitational attraction between the current planet and a second body
+        :param other_body:
+        :return: x and y components of the attraction force (fx, fy)
+        """
+        other_body_x, other_body_y = other_body.x, other_body.y
+
+        # First we calculate the distance between the two bodies
+        distance_x = (other_body_x - self.x)
+        distance_y = (other_body_y - self.y)
+
+        distance = math.sqrt(distance_x ** 2 + distance_y ** 2)
+        if other_body.name == 'sun':
+            self.distance_to_sun = distance
+
+        # Second we calculate the two component of the Gravitational force
+        force_modulus = self.G * (self.mass * other_body.mass) / (distance ** 2)
+        theta = math.atan2(distance_y, distance_x)
+
+        force_x = math.cos(theta) * force_modulus
+        force_y = math.sin(theta) * force_modulus
+
+        return force_x, force_y
+
+    def update_position(self, celestial_bodies):
+        # 1. We first calculates the total force exerted on the current planet by all the universe
+        total_fx = total_fy = 0
+        for body in celestial_bodies:
+            if self == body:
+                continue
+
+            fx, fy = self.attraction(body)
+            total_fx += fx
+            total_fy += fy
+
+        # 2. Update the velocity
+        self.x_velocity += (total_fx / self.mass) * self.TIMESTEP
+        self.y_velocity += (total_fy / self.mass) * self.TIMESTEP
+
+        # 3. Update the position
+        self.x += self.x_velocity * self.TIMESTEP
+        self.y += self.y_velocity * self.TIMESTEP
+
+        # 4. Set up the trajectory
+        self.orbit.append((self.x, self.y))
