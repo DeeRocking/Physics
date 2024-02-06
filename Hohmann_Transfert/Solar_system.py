@@ -161,13 +161,12 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    hubble.satellite_burn_event(celestial['mars'], WIN)
+                    burn_id = 1
+                    hubble.satellite_burn_event(celestial['mars'], WIN, burn_id)
+                if event.key == pygame.K_DOWN:
+                    burn_id = 2
+                    hubble.satellite_burn_event(celestial['mars'], WIN, burn_id)
 
-        # pygame.draw.ellipse(
-        #     WIN, (255, 0, 0),
-        #     [WIN.get_width() / 2, 0, WIN.get_width() / 10, WIN.get_height()],
-        #
-        # )
 
 
         # Render the celestial bodies
@@ -199,7 +198,7 @@ def main():
 
 
 
-        WIN.blit(font1.render("Satellite current position: " + str((np.round(hubble.x, 2), np.round(hubble.y, 2))) + " km",
+        WIN.blit(font1.render("Satellite current position: " + str((np.round(hubble.x / hubble.AU, 2), np.round(hubble.y / hubble.AU, 2))) + " km",
                               True, "White"), (90, 70))
         WIN.blit(
             font1.render("Satellite current velocity: " + str((np.round(hubble.x_velocity, 2), np.round(hubble.y_velocity, 2))) + " km",
@@ -215,9 +214,9 @@ def main():
                          True, "yellow"), (90, 90))
 
         pygame.draw.line(WIN, celestial['mars'].color,
-                         (WIDTH / 2, HEIGHT * (2 / 3)),
+                         (WIDTH / 2, HEIGHT / 2),
                          (celestial['mars'].x * celestial['mars'].SCALE + WIDTH / 2 ,
-                          celestial['mars'].y *celestial['mars'].SCALE + HEIGHT * (2 / 3)))
+                          celestial['mars'].y *celestial['mars'].SCALE + HEIGHT / 2))
 
 
 

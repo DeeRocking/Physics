@@ -34,7 +34,7 @@ class Star:
 
     def draw(self, win):
         x = self.x * self.SCALE + win.get_width() / 2
-        y = self.y * self.SCALE + win.get_height() * (2 / 3)
+        y = self.y * self.SCALE + win.get_height()  / 2
 
         pygame.draw.circle(win,
                            self.color,

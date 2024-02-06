@@ -37,7 +37,7 @@ class Planet:
         :return:
         """
         x = self.x * self.SCALE + win.get_width() / 2
-        y = self.y * self.SCALE + win.get_height() * (2 / 3)
+        y = self.y * self.SCALE + win.get_height() / 2
 
 
         # Draw the planet
@@ -53,7 +53,7 @@ class Planet:
             for point in self.orbit:
                 x, y = point
                 x = x * self.SCALE + win.get_width() / 2
-                y = y * self.SCALE + win.get_height() * (2 / 3)
+                y = y * self.SCALE + win.get_height() / 2
                 updated_points.append((x, y))
 
             star_x, star_y = self.orbit[0]

@@ -18,16 +18,21 @@ class Satellite(Planet):
             for point in self.orbit:
                 x, y = point
                 x = x * self.SCALE + win.get_width() / 2
-                y = y * self.SCALE + win.get_height() * (2 / 3)
+                y = y * self.SCALE + win.get_height() / 2
                 updated_points.append((x, y))
 
 
             pygame.draw.lines(win, self.color, False, updated_points, 2)
             pygame.draw.line(win, self.color,
-                             (win.get_width() / 2, win.get_height() * (2 / 3)), (x, y))
-            # pygame.draw.line(win, (0, 255, 0),
-            #                  (x, y), ((self.x_velocity / (self.x_velocity **2 + self.y_velocity**2) * self.SCALE) ,
-            #                           (self.y_velocity/ (self.x_velocity **2 + self.y_velocity**2) * self.SCALE)))
+                             (win.get_width() / 2, win.get_height() /2), (x, y))
+            pygame.draw.line(win, (0, 255, 255),
+                             (win.get_width() / 2, win.get_height() / 2),
+                             (win.get_width() / 2,
+                              win.get_height() /2 + (self.AU - 0.384e6 * 1000 * 0.45)* self.SCALE))
+            pygame.draw.line(win, (0, 230, 255),
+                             (win.get_width() / 2, win.get_height() / 2),
+                             (win.get_width() / 2,
+                              (win.get_height() / 2 - 228.0e6 * 1000 * self.SCALE)))
 
 
 
@@ -76,7 +81,7 @@ class Satellite(Planet):
         angle_needed = find_launch(mars_time, mars_period)
         self.TARGET_ANGLE = angle_needed
 
-    def satellite_burn_event(self, target_planet: Planet, win):
+    def satellite_burn_event(self, target_planet: Planet, win, bunr_idx: int):
 
         r1 = math.sqrt((self.x**2 + self.y**2))
         r2 = math.sqrt(target_planet.x**2 + target_planet.y**2)
@@ -95,38 +100,48 @@ class Satellite(Planet):
 
         current_angle = self.angle(target_planet)
         s_factor = 1
-        if angle_needed - error_bound <= current_angle <= angle_needed + error_bound:
-            delta_v, _ = self.hohmann_transfert(target_planet)
-            initial_velocity = self.x_velocity
-            self.x_velocity = satellite_start_orbital_velocity  - delta_v * s_factor
-            # self.y_velocity = satellite_start_orbital_velocity - delta_v * s_factor
+        x_rel = win.get_width() / 2
+        y_rel = win.get_height() * (2 / 3) + (self.AU - 0.384e6 * 1000 * 0.45) * self.SCALE
+        dev_x = abs(x_rel - self.x * self.SCALE)
+        dev_y = abs(y_rel - self.y * self.SCALE)
 
-            l = ["***************************"]
-            print(f"{l[0] * 10}")
-            print(f"The trip to {target_planet.name} stated!")
-            print(f"Burn 1 started, initial velocity : {initial_velocity}, added velocity: {delta_v}, total velocity: {self.x_velocity}!")
-            print(f"{l[0] * 10}")
+        if bunr_idx==1:
+            if (dev_x - error_bound <= dev_x <= dev_x + error_bound) and (dev_y - error_bound <= dev_y <= dev_y + error_bound):
 
-            print(f"Angle diff  {abs(current_angle - angle_needed)}")
+                delta_v, _ = self.hohmann_transfert(target_planet)
+                initial_velocity = self.x_velocity
+                self.x_velocity = satellite_start_orbital_velocity  + delta_v * s_factor
+                # self.y_velocity = satellite_start_orbital_velocity - delta_v * s_factor
 
+                l = ["***************************"]
+                print(f"{l[0] * 10}")
+                print(f"The trip to {target_planet.name} stated!")
+                print(f"Burn 1 started, initial velocity : {initial_velocity}, added velocity: {delta_v}, total velocity: {self.x_velocity}!")
+                print(f"{l[0] * 10}")
+                self.TARGET_ACHIEVED = True
+
+        elif bunr_idx==2:
             if r2 - error_bound <= r1 <= r2 + error_bound:
-
-                # _, delta_v = self.hohmann_transfert(target_planet)
+                _, delta_v = self.hohmann_transfert(target_planet)
                 v2 = satellite_end_orbital_velocity
                 v_a = self.x_velocity
-                delta_v = v_a - v2
-                self.x_velocity -= delta_v
+                # delta_v = v_a - v2
+                v_factor = 30
+                if self.x_velocity >= 0:
+                    self.x_velocity += abs(delta_v) * v_factor
+                else:
+                    self.x_velocity += -abs(delta_v) * v_factor
                 # self.y_velocity += delta_v
-            #
-            #     l = ["***************************"]
-            #     print(f"{l[0] * 10}")
-            #     print(f"The trip to {target_planet.name} stated!")
-            #     print(f"Burn 2 started, added velocity: {delta_v}, total velocity: {self.x_velocity}!")
-            #     print(f"{l[0] * 10}")
-            # if (self.x_velocity**2 + self.y_velocity**2) == satellite_start_orbital_velocity:
-            #     print(f"{target_planet.name} orbital velocity {satellite_start_orbital_velocity}")
-            #     print(f"{self.name} orbital velocity {(self.x_velocity**2 + self.y_velocity**2)}")
-            #     self.TARGET_ACHIEVED = True
+                #
+                #     l = ["***************************"]
+                #     print(f"{l[0] * 10}")
+                #     print(f"The trip to {target_planet.name} stated!")
+                #     print(f"Burn 2 started, added velocity: {delta_v}, total velocity: {self.x_velocity}!")
+                #     print(f"{l[0] * 10}")
+                # if (self.x_velocity**2 + self.y_velocity**2) == satellite_start_orbital_velocity:
+                #     print(f"{target_planet.name} orbital velocity {satellite_start_orbital_velocity}")
+                #     print(f"{self.name} orbital velocity {(self.x_velocity**2 + self.y_velocity**2)}")
+                #     self.TARGET_ACHIEVED = True
 
 
 
